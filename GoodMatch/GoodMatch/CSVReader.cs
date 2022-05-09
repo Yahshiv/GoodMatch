@@ -10,7 +10,7 @@ namespace GoodMatch
     {
         FileWriter logger = new FileWriter();
 
-        public void ReadCSVFile(string path, ref List<string> maleCandidates, ref List<string> femaleCandidates)
+        public bool ReadCSVFile(string path, ref List<string> maleCandidates, ref List<string> femaleCandidates)
         {
             Stopwatch timer = new Stopwatch();
             timer.Start();
@@ -28,12 +28,12 @@ namespace GoodMatch
 
                 if(entry == null)
                 {
-                    logger.AddLog("log.txt", "No data in file: " + path);
+                    logger.AddLog("log.txt", "\nNo data in file: " + path);
 
                     streamReader.Close();
                     timer.Stop();
                     logger.AddLog("log.txt", "\nExecution time of CSV reader: " + timer.Elapsed);
-                    return;
+                    return false;
                 }
 
                 while (entry != null)
@@ -43,23 +43,43 @@ namespace GoodMatch
                     entry = streamReader.ReadLine();
                 }
 
-                logger.AddLog("log.txt", "Successfully read data from file: " + path);
+                if(maleCandidates.Count == 0 && femaleCandidates.Count == 0)
+                {
+                    logger.AddLog("log.txt", "\nNo valid data in file: " + path);
+
+                    streamReader.Close();
+                    timer.Stop();
+                    logger.AddLog("log.txt", "\nExecution time of CSV reader: " + timer.Elapsed);
+                    return false;
+                }
+
+                if (maleCandidates.Count == 0 || femaleCandidates.Count == 0)
+                {
+                    logger.AddLog("log.txt", "\nNo valid matches produced as all candidates are the same sex in file: " + path);
+
+                    streamReader.Close();
+                    timer.Stop();
+                    logger.AddLog("log.txt", "\nExecution time of CSV reader: " + timer.Elapsed);
+                    return false;
+                }
+
+                logger.AddLog("log.txt", "\nSuccessfully read data from file: " + path);
 
                 streamReader.Close();
                 timer.Stop();
                 logger.AddLog("log.txt", "\nExecution time of CSV reader: " + timer.Elapsed);
-                return;
+                return true;
             }
             else
             {
                 logger.AddLog("log.txt", "No file found at: " + path);
                 timer.Stop();
                 logger.AddLog("log.txt", "\nExecution time of CSV reader: " + timer.Elapsed);
-                return;
+                return false;
             }
         }
 
-        void ParseCSVData(string line, ref List<string> maleCandidates, ref List<string> femaleCandidates)
+        public void ParseCSVData(string line, ref List<string> maleCandidates, ref List<string> femaleCandidates)
         {
             var data = line.Split(',');
 
